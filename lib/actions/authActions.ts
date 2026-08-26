@@ -55,7 +55,7 @@ export async function loginAction(
 
   await setAuthCookies(result.data);
 
-  redirect("/dashboard");
+  redirect("/dashboard?success=login");
 }
 
 export async function registerAction(
@@ -101,7 +101,7 @@ export async function registerAction(
 
   await setAuthCookies(loginResult.data);
 
-  redirect("/dashboard");
+  redirect("/dashboard?success=register");
 }
 
 export async function logoutAction() {
