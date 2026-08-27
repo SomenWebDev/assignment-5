@@ -19,3 +19,30 @@ export interface AuthData {
   accessToken: string;
   refreshToken: string;
 }
+export interface IGear {
+  id: string;
+  name: string;
+  description: string | null;
+  brand: string | null;
+  imageUrl: string | null;
+  pricePerDay: string;
+  stock: number;
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt: string;
+  providerId: string;
+  categoryId: string;
+
+  category: {
+    id: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+export interface ICategory {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
