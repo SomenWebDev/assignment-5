@@ -55,3 +55,18 @@ export async function getGearById(id: string): Promise<IGear> {
 
   return result.data;
 }
+
+export async function getGears(): Promise<IGear[]> {
+  const response = await fetch(`${API_URL}/api/gear`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Failed to fetch gears");
+  }
+
+  return result.data;
+}
