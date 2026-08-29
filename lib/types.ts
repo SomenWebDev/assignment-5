@@ -39,10 +39,36 @@ export interface IGear {
     createdAt: string;
     updatedAt: string;
   };
+
+  provider?: {
+    id: string;
+    name: string;
+  };
 }
 export interface ICategory {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
+}
+export interface IGearMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface GearFilters {
+  page?: number;
+  limit?: number;
+  categoryId?: string;
+  brand?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+}
+
+export interface GearListResponse {
+  gears: IGear[];
+  meta: IGearMeta;
 }

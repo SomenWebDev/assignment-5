@@ -1,151 +1,114 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Package, ArrowRight } from "lucide-react";
+import { Package } from "lucide-react";
 
 import { getGears } from "@/lib/api/gear";
+import { getCategories } from "@/lib/api/category";
 
-import { Button } from "@/components/ui/button";
+import GearFilters from "@/components/gear/GearFilters";
+import GearGrid from "@/components/gear/GearGrid";
+import GearPagination from "@/components/gear/GearPagination";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-export default async function GearPage() {
-  const gears = await getGears();
+interface GearPageProps {
+  searchParams: Promise<{
+    page?: string;
+    search?: string;
+    categoryId?: string;
+    brand?: string;
+    minPrice?: string;
+    maxPrice?: string;
+  }>;
+}
+
+export default async function GearPage({ searchParams }: GearPageProps) {
+  const params = await searchParams;
+
+  const page = Number(params.page) || 1;
+
+  const minPrice =
+    params.minPrice && !Number.isNaN(Number(params.minPrice))
+      ? Number(params.minPrice)
+      : undefined;
+
+  const maxPrice =
+    params.maxPrice && !Number.isNaN(Number(params.maxPrice))
+      ? Number(params.maxPrice)
+      : undefined;
+
+  const [{ gears, meta }, categories] = await Promise.all([
+    getGears({
+      page,
+      limit: 10,
+      search: params.search || undefined,
+      categoryId: params.categoryId || undefined,
+      brand: params.brand || undefined,
+      minPrice,
+      maxPrice,
+    }),
+    getCategories(),
+  ]);
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <Package className="size-6 text-emerald-600" />
+    <main className="min-h-screen">
+      <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2">
+            <Package className="size-6 text-emerald-600" />
 
-          <h1 className="text-3xl font-bold tracking-tight">Explore Gear</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Explore Gear</h1>
+          </div>
+
+          <p className="mt-2 text-muted-foreground">
+            Find the perfect sports and outdoor equipment for your next
+            adventure.
+          </p>
         </div>
 
-        <p className="mt-2 text-muted-foreground">
-          Find the perfect sports and outdoor equipment for your next adventure.
-        </p>
-      </div>
+        {/* Filters */}
+        <GearFilters categories={categories} />
 
-      {/* Empty State */}
-      {gears.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-100">
-              <Package className="size-8 text-emerald-600" />
-            </div>
+        {/* Gear */}
+        {gears.length === 0 ? (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-100">
+                <Package className="size-8 text-emerald-600" />
+              </div>
 
-            <h2 className="text-xl font-semibold">No gear available</h2>
+              <h2 className="text-xl font-semibold">No gear found</h2>
 
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              There are no gear items available for rental right now.
+              <p className="mt-2 max-w-md text-sm text-muted-foreground">
+                Try changing your search or filter options.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Result Count */}
+            <p className="text-sm text-muted-foreground">
+              Showing{" "}
+              <span className="font-semibold text-foreground">
+                {gears.length}
+              </span>{" "}
+              of{" "}
+              <span className="font-semibold text-foreground">
+                {meta.total}
+              </span>{" "}
+              {meta.total === 1 ? "gear" : "gears"}
             </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Gear Count */}
-          <p className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-foreground">
-              {gears.length}
-            </span>{" "}
-            {gears.length === 1 ? "gear" : "gears"}
-          </p>
 
-          {/* Gear Grid */}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {gears.map((gear) => (
-              <Card
-                key={gear.id}
-                className="group overflow-hidden border-0 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-              >
-                {/* Image */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
-                  {gear.imageUrl ? (
-                    <Image
-                      src={gear.imageUrl}
-                      alt={gear.name}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Package className="size-12 text-slate-300" />
-                    </div>
-                  )}
+            {/* Gear Grid */}
+            <GearGrid gears={gears} />
 
-                  {/* Availability */}
-                  <div className="absolute right-3 top-3">
-                    {gear.isAvailable ? (
-                      <Badge className="border-0 bg-emerald-600 text-white hover:bg-emerald-600">
-                        Available
-                      </Badge>
-                    ) : (
-                      <Badge variant="destructive">Unavailable</Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Content */}
-                <CardContent className="space-y-4 p-5">
-                  <div>
-                    <div className="mb-2 flex items-start justify-between gap-3">
-                      <h2 className="line-clamp-1 text-lg font-semibold">
-                        {gear.name}
-                      </h2>
-
-                      <span className="shrink-0 text-lg font-bold text-emerald-600">
-                        ৳{gear.pricePerDay}
-                        <span className="text-xs font-normal text-muted-foreground">
-                          /day
-                        </span>
-                      </span>
-                    </div>
-
-                    {/* Category + Brand */}
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-                        {gear.category.name}
-                      </Badge>
-
-                      {gear.brand && (
-                        <Badge variant="outline">{gear.brand}</Badge>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
-                    {gear.description || "No description available."}
-                  </p>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between border-t pt-4">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Stock</p>
-
-                      <p className="font-semibold">
-                        {gear.stock} {gear.stock === 1 ? "item" : "items"}
-                      </p>
-                    </div>
-
-                    <Link href={`/gear/${gear.id}`}>
-                      <Button
-                        size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700"
-                      >
-                        View Details
-                        <ArrowRight className="ml-2 size-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+            {/* Pagination */}
+            <GearPagination
+              currentPage={meta.page}
+              totalPages={meta.totalPages}
+            />
+          </>
+        )}
+      </div>
+    </main>
   );
 }
