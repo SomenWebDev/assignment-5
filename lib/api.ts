@@ -23,6 +23,7 @@ export async function api<T>(
         statusCode: response.status,
         message: data.message || "Something went wrong",
         data: data.data,
+        errorDetails: data.errorDetails,
       };
     }
 

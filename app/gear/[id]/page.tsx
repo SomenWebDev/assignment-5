@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Package, ShieldCheck, Star, Tag, User } from "lucide-react";
+import { ArrowLeft, Package, ShieldCheck, Tag, User } from "lucide-react";
 
 import { getGearById, NotFoundError } from "@/lib/api/gear";
+import { getCurrentUser } from "@/lib/auth";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import RentGearForm from "@/components/gear/RentGearForm";
 
 interface GearDetailsPageProps {
   params: Promise<{
@@ -29,6 +31,9 @@ export default async function GearDetailsPage({
     }
     throw error; // unexpected errors -> error.tsx
   }
+
+  const user = await getCurrentUser();
+  const canRent = !user || user.role === "CUSTOMER";
 
   return (
     <main className="min-h-screen">
@@ -148,21 +153,34 @@ export default async function GearDetailsPage({
               </CardContent>
             </Card>
 
-            {/* Rent CTA */}
-            <Button
-              size="lg"
-              disabled={!gear.isAvailable || gear.stock === 0}
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
-            >
-              <Star className="mr-2 size-4" />
-              {gear.isAvailable && gear.stock > 0
-                ? "Rent Now"
-                : "Currently Unavailable"}
-            </Button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              Booking flow coming soon.
-            </p>
+            {/* Rent section — role-aware */}
+            {canRent ? (
+              user ? (
+                <RentGearForm
+                  gearId={gear.id}
+                  pricePerDay={gear.pricePerDay}
+                  stock={gear.stock}
+                  isAvailable={gear.isAvailable}
+                />
+              ) : (
+                <Link href={`/auth/login?redirect=/gear/${gear.id}`}>
+                  <Button
+                    size="lg"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    Login to Rent
+                  </Button>
+                </Link>
+              )
+            ) : (
+              <div className="rounded-lg border border-dashed bg-muted/50 p-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {user.role === "PROVIDER"
+                    ? "Providers cannot rent gear. Switch to a customer account to rent."
+                    : "This account cannot rent gear."}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

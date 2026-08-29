@@ -7,41 +7,45 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { getMyGears } from "@/lib/api/gear";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const stats = [
-  {
-    title: "Total Gear",
-    value: "0",
-    description: "Gear currently listed",
-    icon: Package,
-    iconClass: "bg-emerald-100 text-emerald-600",
-  },
-  {
-    title: "Active Rentals",
-    value: "0",
-    description: "Currently rented gear",
-    icon: ShoppingBag,
-    iconClass: "bg-blue-100 text-blue-600",
-  },
-  {
-    title: "Pending Orders",
-    value: "0",
-    description: "Orders awaiting action",
-    icon: Clock3,
-    iconClass: "bg-amber-100 text-amber-600",
-  },
-  {
-    title: "Total Earnings",
-    value: "৳0",
-    description: "Earnings from rentals",
-    icon: TrendingUp,
-    iconClass: "bg-purple-100 text-purple-600",
-  },
-];
+export default async function ProviderDashboardPage() {
+  const gears = await getMyGears();
 
-export default function ProviderDashboardPage() {
+  const stats = [
+    {
+      title: "Total Gear",
+      value: String(gears.length),
+      description: "Gear currently listed",
+      icon: Package,
+      iconClass: "bg-emerald-100 text-emerald-600",
+    },
+    {
+      title: "Active Rentals",
+      value: "0",
+      description: "Currently rented gear",
+      icon: ShoppingBag,
+      iconClass: "bg-blue-100 text-blue-600",
+    },
+    {
+      title: "Pending Orders",
+      value: "0",
+      description: "Orders awaiting action",
+      icon: Clock3,
+      iconClass: "bg-amber-100 text-amber-600",
+    },
+    {
+      title: "Total Earnings",
+      value: "৳0",
+      description: "Earnings from rentals",
+      icon: TrendingUp,
+      iconClass: "bg-purple-100 text-purple-600",
+    },
+  ];
+
   return (
     <div className="space-y-8">
       {/* Hero */}

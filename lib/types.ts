@@ -3,6 +3,7 @@ export interface ApiResponse<T> {
   statusCode: number;
   message: string;
   data: T;
+  errorDetails?: unknown;
 }
 
 export type Role = "CUSTOMER" | "PROVIDER" | "ADMIN";
@@ -71,4 +72,32 @@ export interface GearFilters {
 export interface GearListResponse {
   gears: IGear[];
   meta: IGearMeta;
+}
+
+export type RentalStatus =
+  | "PLACED"
+  | "CONFIRMED"
+  | "CANCELLED"
+  | "PAID"
+  | "PICKED_UP"
+  | "RETURNED";
+
+export interface IRentalOrderItem {
+  id: string;
+  quantity: number;
+  price: string;
+  gearItemId: string;
+  gearItem: IGear;
+}
+
+export interface IRentalOrder {
+  id: string;
+  status: RentalStatus;
+  startDate: string;
+  endDate: string;
+  totalAmount: string;
+  createdAt: string;
+  updatedAt: string;
+  customerId: string;
+  items: IRentalOrderItem[];
 }
