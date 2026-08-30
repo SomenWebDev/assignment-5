@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 
 import { api } from "@/lib/api";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export interface GearFormState {
   success: boolean;
   message: string;
@@ -149,4 +151,44 @@ export async function deleteGearAction(id: string): Promise<GearFormState> {
     success: true,
     message: "Gear deleted successfully!",
   };
+}
+
+export interface AvailabilityResult {
+  success: boolean;
+  message: string;
+  availableStock?: number;
+}
+
+export async function checkGearAvailability(
+  gearId: string,
+  startDate: string,
+  endDate: string,
+): Promise<AvailabilityResult> {
+  try {
+    const url =
+      `${API_URL}/api/gear/${gearId}/availability` +
+      `?startDate=${encodeURIComponent(startDate)}` +
+      `&endDate=${encodeURIComponent(endDate)}`;
+
+    const response = await fetch(url, { cache: "no-store" });
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "Failed to check availability",
+      };
+    }
+
+    return {
+      success: true,
+      message: "OK",
+      availableStock: Number(result.data.availableStock),
+    };
+  } catch {
+    return {
+      success: false,
+      message: "Unable to reach the server. Please try again.",
+    };
+  }
 }
