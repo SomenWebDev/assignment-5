@@ -100,4 +100,9 @@ export interface IRentalOrder {
   updatedAt: string;
   customerId: string;
   items: IRentalOrderItem[];
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }

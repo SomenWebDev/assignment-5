@@ -28,3 +28,28 @@ export async function getMyOrders(): Promise<IRentalOrder[]> {
 
   return result.data;
 }
+
+export async function getIncomingOrders(): Promise<IRentalOrder[]> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  if (!accessToken) {
+    throw new Error("Unauthorized");
+  }
+
+  const response = await fetch(`${API_URL}/api/rentals/provider/incoming`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: "no-store",
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Failed to fetch incoming orders");
+  }
+
+  return result.data;
+}

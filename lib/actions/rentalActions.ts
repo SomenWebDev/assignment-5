@@ -71,3 +71,34 @@ export async function createRentalAction(
     order: result.data,
   };
 }
+
+export interface UpdateStatusState {
+  success: boolean;
+  message: string;
+}
+
+export async function updateOrderStatusAction(
+  orderId: string,
+  status: "CONFIRMED" | "CANCELLED" | "PICKED_UP" | "RETURNED",
+): Promise<UpdateStatusState> {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+
+  if (!accessToken) {
+    return { success: false, message: "You are not authenticated." };
+  }
+
+  const result = await api(`/api/rentals/${orderId}/status`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!result.success) {
+    return { success: false, message: result.message };
+  }
+
+  return { success: true, message: `Order marked as ${status}.` };
+}
