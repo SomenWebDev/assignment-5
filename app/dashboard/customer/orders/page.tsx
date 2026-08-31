@@ -5,6 +5,7 @@ import { getMyOrders } from "@/lib/api/rental";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import PayNowButton from "@/components/dashboard/customer/PayNowButton";
 
 const statusStyles: Record<string, string> = {
   PLACED: "bg-amber-100 text-amber-700",
@@ -121,17 +122,23 @@ export default async function CustomerOrdersPage() {
 
                   {/* Footer */}
                   <div className="flex items-center justify-between border-t pt-4">
-                    <p className="text-xs text-muted-foreground">
-                      Order #{order.id.slice(0, 8)}
-                    </p>
-                    <div className="text-right">
+                    <div>
                       <p className="text-xs text-muted-foreground">
-                        Total Amount
+                        Order #{order.id.slice(0, 8)}
                       </p>
-                      <p className="text-lg font-bold text-emerald-600">
-                        ৳{order.totalAmount}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">
+                          Total Amount
+                        </p>
+                        <p className="text-lg font-bold text-emerald-600">
+                          ৳{order.totalAmount}
+                        </p>
+                      </div>
                     </div>
+
+                    {order.status === "CONFIRMED" && (
+                      <PayNowButton rentalOrderId={order.id} />
+                    )}
                   </div>
                 </CardContent>
               </Card>

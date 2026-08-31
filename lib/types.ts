@@ -106,3 +106,17 @@ export interface IRentalOrder {
     email: string;
   };
 }
+export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED";
+export type PaymentMethod = "STRIPE";
+
+export interface IPayment {
+  id: string;
+  amount: string;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  transactionId: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  rentalOrderId: string;
+  rentalOrder: IRentalOrder;
+}

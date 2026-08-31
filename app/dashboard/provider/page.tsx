@@ -8,12 +8,31 @@ import {
 } from "lucide-react";
 
 import { getMyGears } from "@/lib/api/gear";
+import { getIncomingOrders } from "@/lib/api/rental";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function ProviderDashboardPage() {
-  const gears = await getMyGears();
+  const [gears, orders] = await Promise.all([
+    getMyGears(),
+    getIncomingOrders(),
+  ]);
+
+  const activeRentals = orders.filter(
+    (o) => o.status === "PAID" || o.status === "PICKED_UP",
+  ).length;
+
+  const pendingOrders = orders.filter((o) => o.status === "PLACED").length;
+
+  const totalEarnings = orders
+    .filter(
+      (o) =>
+        o.status === "PAID" ||
+        o.status === "PICKED_UP" ||
+        o.status === "RETURNED",
+    )
+    .reduce((sum, o) => sum + Number(o.totalAmount), 0);
 
   const stats = [
     {
@@ -25,21 +44,21 @@ export default async function ProviderDashboardPage() {
     },
     {
       title: "Active Rentals",
-      value: "0",
+      value: String(activeRentals),
       description: "Currently rented gear",
       icon: ShoppingBag,
       iconClass: "bg-blue-100 text-blue-600",
     },
     {
       title: "Pending Orders",
-      value: "0",
+      value: String(pendingOrders),
       description: "Orders awaiting action",
       icon: Clock3,
       iconClass: "bg-amber-100 text-amber-600",
     },
     {
       title: "Total Earnings",
-      value: "৳0",
+      value: `৳${totalEarnings.toFixed(2)}`,
       description: "Earnings from rentals",
       icon: TrendingUp,
       iconClass: "bg-purple-100 text-purple-600",
