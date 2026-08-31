@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingBag } from "lucide-react";
+import { CreditCard, LayoutDashboard, ShoppingBag } from "lucide-react";
 
 import {
   Sidebar,
@@ -24,6 +24,11 @@ const menuItems = [
     title: "My Orders",
     href: "/dashboard/customer/orders",
     icon: ShoppingBag,
+  },
+  {
+    title: "Payment History",
+    href: "/dashboard/customer/payments",
+    icon: CreditCard,
   },
 ];
 
