@@ -120,3 +120,15 @@ export interface IPayment {
   rentalOrderId: string;
   rentalOrder: IRentalOrder;
 }
+export interface IReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  customerId: string;
+  gearItemId: string;
+  customer: {
+    id: string;
+    name: string;
+  };
+}

@@ -6,6 +6,7 @@ import { getMyOrders } from "@/lib/api/rental";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import PayNowButton from "@/components/dashboard/customer/PayNowButton";
+import ReviewDialog from "@/components/dashboard/customer/ReviewDialog";
 
 const statusStyles: Record<string, string> = {
   PLACED: "bg-amber-100 text-amber-700",
@@ -112,9 +113,18 @@ export default async function CustomerOrdersPage() {
                             </p>
                           </div>
 
-                          <p className="shrink-0 font-semibold text-emerald-600">
-                            ৳{lineTotal}
-                          </p>
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <p className="font-semibold text-emerald-600">
+                              ৳{lineTotal}
+                            </p>
+
+                            {order.status === "RETURNED" && (
+                              <ReviewDialog
+                                gearItemId={item.gearItem.id}
+                                gearName={item.gearItem.name}
+                              />
+                            )}
+                          </div>
                         </div>
                       );
                     })}

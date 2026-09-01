@@ -1,9 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Package, ShieldCheck, Tag, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  ShieldCheck,
+  Star as StarIcon,
+  Tag,
+  User,
+} from "lucide-react";
 
 import { getGearById, NotFoundError } from "@/lib/api/gear";
 import { getCurrentUser } from "@/lib/auth";
+import { getGearReviews } from "@/lib/api/review";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,12 +35,16 @@ export default async function GearDetailsPage({
     gear = await getGearById(id);
   } catch (error) {
     if (error instanceof NotFoundError) {
-      throw error; // handled by not-found.tsx / notFound() upstream if you add it
+      throw error;
     }
-    throw error; // unexpected errors -> error.tsx
+    throw error;
   }
 
-  const user = await getCurrentUser();
+  const [user, reviews] = await Promise.all([
+    getCurrentUser(),
+    getGearReviews(id),
+  ]);
+
   const canRent = !user || user.role === "CUSTOMER";
 
   return (
@@ -182,6 +194,51 @@ export default async function GearDetailsPage({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-10 space-y-4">
+          <h2 className="text-xl font-semibold">Reviews ({reviews.length})</h2>
+
+          {reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No reviews yet for this gear.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((review) => (
+                <Card key={review.id} className="border-0 shadow-sm">
+                  <CardContent className="space-y-2 p-4">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{review.customer.name}</p>
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <StarIcon
+                            key={i}
+                            className={`size-4 ${
+                              i < review.rating
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {review.comment && (
+                      <p className="text-sm text-muted-foreground">
+                        {review.comment}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </main>
