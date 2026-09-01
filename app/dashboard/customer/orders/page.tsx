@@ -1,165 +1,161 @@
-import Link from "next/link";
-import {
-  ArrowUpRight,
-  CreditCard,
-  Package,
-  ShoppingBag,
-  Wallet,
-} from "lucide-react";
+import Image from "next/image";
+import { CalendarDays, Package, ShoppingBag } from "lucide-react";
 
 import { getMyOrders } from "@/lib/api/rental";
-import { getMyPayments } from "@/lib/api/payment";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import PayNowButton from "@/components/dashboard/customer/PayNowButton";
+import ReviewDialog from "@/components/dashboard/customer/ReviewDialog";
 
-export default async function CustomerDashboardPage() {
-  const [orders, payments] = await Promise.all([
-    getMyOrders(),
-    getMyPayments(),
-  ]);
+const statusStyles: Record<string, string> = {
+  PLACED: "bg-amber-100 text-amber-700",
+  CONFIRMED: "bg-blue-100 text-blue-700",
+  PAID: "bg-emerald-100 text-emerald-700",
+  PICKED_UP: "bg-purple-100 text-purple-700",
+  RETURNED: "bg-slate-200 text-slate-700",
+  CANCELLED: "bg-red-100 text-red-700",
+};
 
-  const totalOrders = orders.length;
+function getDaysBetween(startDate: string, endDate: string) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  return Math.max(
+    1,
+    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
+  );
+}
 
-  const activeRentals = orders.filter(
-    (o) => o.status === "PAID" || o.status === "PICKED_UP",
-  ).length;
-
-  const pendingPayments = orders.filter((o) => o.status === "CONFIRMED").length;
-
-  const totalSpent = payments
-    .filter((p) => p.status === "COMPLETED")
-    .reduce((sum, p) => sum + Number(p.amount), 0);
-
-  const stats = [
-    {
-      title: "Total Orders",
-      value: String(totalOrders),
-      description: "Rental orders placed",
-      icon: Package,
-      iconClass: "bg-emerald-100 text-emerald-600",
-    },
-    {
-      title: "Active Rentals",
-      value: String(activeRentals),
-      description: "Currently rented gear",
-      icon: ShoppingBag,
-      iconClass: "bg-blue-100 text-blue-600",
-    },
-    {
-      title: "Pending Payments",
-      value: String(pendingPayments),
-      description: "Orders awaiting payment",
-      icon: CreditCard,
-      iconClass: "bg-amber-100 text-amber-600",
-    },
-    {
-      title: "Total Spent",
-      value: `৳${totalSpent.toFixed(2)}`,
-      description: "Completed payments",
-      icon: Wallet,
-      iconClass: "bg-purple-100 text-purple-600",
-    },
-  ];
+export default async function CustomerOrdersPage() {
+  const orders = await getMyOrders();
 
   return (
-    <div className="space-y-8">
-      {/* Hero */}
-      <section className="rounded-2xl bg-gradient-to-r from-emerald-600 to-green-500 p-6 text-white shadow-lg sm:p-8">
-        <p className="mb-2 text-sm font-medium text-emerald-100">
-          GearUp Customer
+    <div className="space-y-6">
+      <div>
+        <div className="flex items-center gap-2">
+          <ShoppingBag className="size-6 text-emerald-600" />
+          <h1 className="text-3xl font-bold tracking-tight">My Orders</h1>
+        </div>
+
+        <p className="mt-2 text-muted-foreground">
+          Track your rental orders and their current status.
         </p>
+      </div>
 
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          My Dashboard
-        </h1>
-
-        <p className="mt-2 max-w-2xl text-sm text-emerald-50 sm:text-base">
-          Track your rentals, payments, and reviews all in one place.
-        </p>
-      </section>
-
-      {/* Statistics */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold">Overview</h2>
-
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
+      {orders.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-4 flex size-16 items-center justify-center rounded-full bg-emerald-100">
+              <ShoppingBag className="size-8 text-emerald-600" />
+            </div>
+            <h2 className="text-xl font-semibold">No orders yet</h2>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Browse gear and place your first rental order.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => {
+            const days = getDaysBetween(order.startDate, order.endDate);
 
             return (
-              <Card
-                key={stat.title}
-                className="border-0 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.title}
-                  </CardTitle>
+              <Card key={order.id} className="border-0 shadow-sm">
+                <CardContent className="space-y-4 p-5">
+                  {/* Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CalendarDays className="size-4" />
+                      {new Date(order.startDate).toLocaleDateString()} –{" "}
+                      {new Date(order.endDate).toLocaleDateString()} ({days}{" "}
+                      {days === 1 ? "day" : "days"})
+                    </div>
 
-                  <div
-                    className={`flex size-10 items-center justify-center rounded-xl ${stat.iconClass}`}
-                  >
-                    <Icon className="size-5" />
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <div className="text-3xl font-bold tracking-tight">
-                    {stat.value}
+                    <Badge
+                      className={`border-0 ${statusStyles[order.status] ?? "bg-slate-100 text-slate-700"}`}
+                    >
+                      {order.status}
+                    </Badge>
                   </div>
 
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {stat.description}
-                  </p>
+                  {/* Items */}
+                  <div className="space-y-3 border-t pt-4">
+                    {order.items.map((item) => {
+                      const lineTotal = Number(item.price);
+                      const pricePerDay = lineTotal / item.quantity / days || 0;
+
+                      return (
+                        <div key={item.id} className="flex items-center gap-3">
+                          <div className="relative size-14 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                            {item.gearItem.imageUrl ? (
+                              <Image
+                                src={item.gearItem.imageUrl}
+                                alt={item.gearItem.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center">
+                                <Package className="size-6 text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium">
+                              {item.gearItem.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              ৳{pricePerDay.toFixed(0)}/day × {item.quantity}{" "}
+                              {item.quantity === 1 ? "item" : "items"} × {days}{" "}
+                              {days === 1 ? "day" : "days"}
+                            </p>
+                          </div>
+
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <p className="font-semibold text-emerald-600">
+                              ৳{lineTotal}
+                            </p>
+
+                            {order.status === "RETURNED" && (
+                              <ReviewDialog
+                                gearItemId={item.gearItem.id}
+                                gearName={item.gearItem.name}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="flex items-center justify-between border-t pt-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Order #{order.id.slice(0, 8)}
+                      </p>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">
+                          Total Amount
+                        </p>
+                        <p className="text-lg font-bold text-emerald-600">
+                          ৳{order.totalAmount}
+                        </p>
+                      </div>
+                    </div>
+
+                    {order.status === "CONFIRMED" && (
+                      <PayNowButton rentalOrderId={order.id} />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
-      </section>
-
-      {/* Quick Actions */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-
-          <p className="text-sm text-muted-foreground">
-            Manage your rentals and payments quickly.
-          </p>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/gear">
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
-                <Package className="mr-2 size-4" />
-                Browse Gear
-              </Button>
-            </Link>
-
-            <Link href="/dashboard/customer/orders">
-              <Button
-                variant="outline"
-                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-              >
-                View My Orders
-                <ArrowUpRight className="ml-2 size-4" />
-              </Button>
-            </Link>
-
-            <Link href="/dashboard/customer/payments">
-              <Button
-                variant="outline"
-                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-              >
-                Payment History
-                <ArrowUpRight className="ml-2 size-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      )}
     </div>
   );
 }

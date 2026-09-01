@@ -90,22 +90,22 @@ export interface IRentalOrderItem {
   gearItem: IGear;
 }
 
-export interface IRentalOrder {
-  id: string;
-  status: RentalStatus;
-  startDate: string;
-  endDate: string;
-  totalAmount: string;
-  createdAt: string;
-  updatedAt: string;
-  customerId: string;
-  items: IRentalOrderItem[];
-  customer?: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
+// export interface IRentalOrder {
+//   id: string;
+//   status: RentalStatus;
+//   startDate: string;
+//   endDate: string;
+//   totalAmount: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   customerId: string;
+//   items: IRentalOrderItem[];
+//   customer?: {
+//     id: string;
+//     name: string;
+//     email: string;
+//   };
+// }
 export type PaymentStatus = "PENDING" | "COMPLETED" | "FAILED";
 export type PaymentMethod = "STRIPE";
 
@@ -131,4 +131,39 @@ export interface IReview {
     id: string;
     name: string;
   };
+}
+
+export type UserStatus = "ACTIVE" | "SUSPENDED";
+
+export interface IAdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  status: UserStatus;
+  createdAt: string;
+}
+export interface IRentalOrder {
+  id: string;
+  status: RentalStatus;
+  startDate: string;
+  endDate: string;
+  totalAmount: string;
+  createdAt: string;
+  updatedAt: string;
+  customerId: string;
+  items: IRentalOrderItem[];
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  payment?: {
+    id: string;
+    status: PaymentStatus;
+    amount: string;
+    method: PaymentMethod;
+    transactionId: string | null;
+    paidAt: string | null;
+  } | null;
 }
